@@ -8,19 +8,22 @@ from time import sleep
 from math import ceil, floor
 from PIL import Image, ImageDraw, ImageFont
 from os import system
+import logging
 import json
 import time
 import PIL
 
+logging.basicConfig(format='%(levelname)s >>> %(message)s', level=logging.DEBUG)
 
 # Constants.
-jsonFile = "response.json"
-imgFile = "image.jpg"
-url = "https://transportapi.com/v3/uk/bus/stop_timetables/" + BUS_CODE +  ".json?app_id=" + APP_ID + "&app_key=" + APP_KEY
-
+JSON_FILE = "response.json"
+IMG_FILE = "image.jpg"
+URL = "https://transportapi.com/v3/uk/bus/stop_timetables/" + BUS_CODE +  ".json?app_id=" + APP_ID + "&app_key=" + APP_KEY
 LINE = 1
 AIMED_ARRIVAL_TIME = 8
 EPOCH_TIME = datetime(1970, 1, 1)
+
+
 
 # Fonts.
 Roboto_Black = "Roboto/Roboto-Black.ttf"
@@ -83,30 +86,30 @@ def getDepartureInfo(departure, printInfo):
 
 # >>> Pull the bus times from the api.
 def pullBusTimes():
-    print(">>> Pull bus times.")
+    logging.info(">>> Pull bus times.")
     
-    response = urlopen(url) # Get the json response.
+    response = urlopen(URL) # Get the json response.
     jsonDict = json.loads(response.read()) # Load response into dictionary.
     jsonString = json.dumps(jsonDict, indent=2) # Format the json for file output.
 
     # Write the response to file.
-    with open(jsonFile, "w") as writer:
+    with open(JSON_FILE, "w") as writer:
         writer.write(jsonString)
 
 
 # >>> Read the bus times from json file.
 def readBusTimes():
-    print(">>> Read bus times.")
+    logging.info(">>> Read bus times.")
     
-    f = open(jsonFile) # Open the file.
+    f = open(JSON_FILE) # Open the file.
     jsonDict = json.load(f) # Load the values into the dictionary.
     f.close() # Close the file.
     return jsonDict
 
 
 # >>> Extract the useful data from the json file.
-def extractData(jsonDict):
-    print(">>> Extracting the useful json data.")
+def extractData(jsonDict, TESTING_MODE):
+    logging.info(">>> Extracting the useful json data.")
 
     departuresArray = [] # Reset the departures array table.
     departures = jsonDict["departures"]["all"] # Get the departures from the json dictionary.
@@ -115,16 +118,18 @@ def extractData(jsonDict):
         departuresArray.append(row) # Add the departure information to the departures array.
 
     for row in departuresArray: # For every row,
-        print(row) # print the row.
+        if TESTING_MODE : print(row) # print the row.
         
-    if len(departuresArray) == 0: print("    ")
+    if len(departuresArray) == 0:
+        #logging.warning("No departures.")
+        pass
 
     return departuresArray
 
 
 # >>> Create image.
 def createImage(departuresArray):
-    print(">>> Creating the image.")
+    logging.info(">>> Creating the image.")
     
     img = Image.new(mode="RGB", size=(480,800), color="white") # Create blank image.
     
@@ -150,17 +155,17 @@ def createImage(departuresArray):
         imgD.text((42, y), "No Buses\n\tScheduled", font=noBuses, fill=(0, 0, 0)) # Text if no buses are scheduled.
 
     img = img.rotate(270 if FLIP else 90, expand=1) # Rotate the image.
-    img.save(imgFile) # Export the image.
+    img.save(IMG_FILE) # Export the image.
 
 
 # >>> Show the image on Inky.
 def showImage():
-    print(">>> Outputting image to Inky.")
+    logging.info(">>> Outputting image to Inky.")
     
     inky = auto(ask_user=True, verbose=True)
     saturation = 0.5
 
-    image = Image.open(imgFile)
+    image = Image.open(IMG_FILE)
     resizedimage = image.resize(inky.resolution)
 
     inky.set_image(resizedimage, saturation=saturation)
@@ -182,7 +187,7 @@ def waitForZeroSeconds():
 def refreshScreen(TESTING_MODE):
     if not TESTING_MODE : pullBusTimes()
     jsonDict = readBusTimes()
-    departuresArray = extractData(jsonDict)
+    departuresArray = extractData(jsonDict, TESTING_MODE)
     waitForZeroSeconds()
     createImage(departuresArray)
     showImage()
@@ -212,16 +217,16 @@ while True:
         sleep(timeDifference * 60) # Sleep for all the minutes.
         
         if currentTime_T >= updateTime_T : # If current time is greater than the update time,
-            print(">>> Current time == MiddleCeiling Row -> Refreshing Screen")
+            logging.info("Current time == MiddleCeiling Row -> Refreshing Screen")
             departuresArray = refreshScreen(TESTING_MODE) # refresh the display,
             waitForZeroSeconds() # and wait for ZERO seconds again.
     
     except IndexError:
-        print("No buses scheduled, sleeping for two hours.")
-        sleep(7200)
+        logging.warning("No buses scheduled, sleeping for three hours.")
+        sleep(10800)
         
     except Exception as e:
-        print(e)
+        logging.error(e)
         quit()
 
 
