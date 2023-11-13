@@ -1,0 +1,5 @@
+.DS_Store
+.stversions/
+.stfolder/
+__pycache__
+image.jpg
