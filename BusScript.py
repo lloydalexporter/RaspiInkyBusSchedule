@@ -86,7 +86,7 @@ def getDepartureInfo(departure, printInfo):
 
 # >>> Pull the bus times from the api.
 def pullBusTimes():
-    logging.info(">>> Pull bus times.")
+    logging.info("Pull bus times.")
     
     response = urlopen(URL) # Get the json response.
     jsonDict = json.loads(response.read()) # Load response into dictionary.
@@ -99,7 +99,7 @@ def pullBusTimes():
 
 # >>> Read the bus times from json file.
 def readBusTimes():
-    logging.info(">>> Read bus times.")
+    logging.info("Read bus times.")
     
     f = open(JSON_FILE) # Open the file.
     jsonDict = json.load(f) # Load the values into the dictionary.
@@ -109,7 +109,7 @@ def readBusTimes():
 
 # >>> Extract the useful data from the json file.
 def extractData(jsonDict, TESTING_MODE):
-    logging.info(">>> Extracting the useful json data.")
+    logging.info("Extracting the useful json data.")
 
     departuresArray = [] # Reset the departures array table.
     departures = jsonDict["departures"]["all"] # Get the departures from the json dictionary.
@@ -129,7 +129,7 @@ def extractData(jsonDict, TESTING_MODE):
 
 # >>> Create image.
 def createImage(departuresArray):
-    logging.info(">>> Creating the image.")
+    logging.info("Creating the image.")
     
     img = Image.new(mode="RGB", size=(480,800), color="white") # Create blank image.
     
@@ -160,7 +160,7 @@ def createImage(departuresArray):
 
 # >>> Show the image on Inky.
 def showImage():
-    logging.info(">>> Outputting image to Inky.")
+    logging.info("Outputting image to Inky.")
     
     inky = auto(ask_user=True, verbose=True)
     saturation = 0.5
@@ -180,7 +180,7 @@ def waitForZeroSeconds():
     while True:
         secs = float(datetime.now().strftime("%S.%f"))
         if secs < 0.1 : break
-        print("Waiting for ZERO, sleeping", 60-secs, "seconds...")
+        logging.info(f"Waiting for ZERO, sleeping {60-secs} seconds...")
         sleep(60-secs)
 
 
