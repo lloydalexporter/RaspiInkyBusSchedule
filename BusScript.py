@@ -1,4 +1,7 @@
+#!/usr/bin/env python3
+
 from urllib.request import urlopen
+from inky.auto import auto
 from datetime import datetime
 from CONFIG import APP_ID, APP_KEY, BUS_CODE, FLIP
 from time import sleep
@@ -154,8 +157,17 @@ def createImage(departuresArray):
 def showImage():
     print(">>> Outputting image to Inky.")
     
-    script = "/home/pi/Pimoroni/inky/examples/7color/image.py " + imgFile # Pimoroni E-ink display string.
-    system(script) # Run the script to display the image.
+    inky = auto(ask_user=True, verbose=True)
+    saturation = 0.5
+
+    image = Image.open(imgFile)
+    resizedimage = image.resize(inky.resolution)
+
+    inky.set_image(resizedimage, saturation=saturation)
+    inky.show()
+
+    # script = "/home/pi/Pimoroni/inky/examples/7color/image.py " + imgFile # Pimoroni E-ink display string.
+    # system(script) # Run the script to display the image.
 
 
 # >>> Reset time to Zero Seconds.

@@ -3,3 +3,6 @@
 .stfolder/
 __pycache__
 image.jpg
+CONFIG.py
+*.json
+tmp.py
