@@ -1,6 +1,6 @@
 from urllib.request import urlopen
 from datetime import datetime
-from CONFIG import app_id, app_key, bus_code, flip
+from CONFIG import APP_ID, APP_KEY, BUS_CODE, FLIP
 from time import sleep
 from math import ceil, floor
 from PIL import Image, ImageDraw, ImageFont
@@ -13,7 +13,7 @@ import PIL
 # Constants.
 jsonFile = "response.json"
 imgFile = "image.jpg"
-url = "https://transportapi.com/v3/uk/bus/stop_timetables/" + bus_code +  ".json?app_id=" + app_id + "&app_key=" + app_key
+url = "https://transportapi.com/v3/uk/bus/stop_timetables/" + BUS_CODE +  ".json?app_id=" + APP_ID + "&app_key=" + APP_KEY
 
 LINE = 1
 AIMED_ARRIVAL_TIME = 8
@@ -146,7 +146,7 @@ def createImage(departuresArray):
     if len(departuresArray) == 0 :
         imgD.text((42, y), "No Buses\n\tScheduled", font=noBuses, fill=(0, 0, 0)) # Text if no buses are scheduled.
 
-    img = img.rotate(270 if flip else 90, expand=1) # Rotate the image.
+    img = img.rotate(270 if FLIP else 90, expand=1) # Rotate the image.
     img.save(imgFile) # Export the image.
 
 
