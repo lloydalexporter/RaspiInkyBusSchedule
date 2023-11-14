@@ -123,6 +123,8 @@ def extractData(jsonDict, TESTING_MODE):
     if len(departuresArray) == 0:
         #logging.warning("No departures.")
         pass
+    else:
+        logging.info(f"{len(departuresArray)} departures found.")
 
     return departuresArray
 
@@ -152,7 +154,7 @@ def createImage(departuresArray):
         toggle = not toggle # Flip the toggle.
         
     if len(departuresArray) == 0 :
-        imgD.text((42, y), "No Buses\n\tScheduled", font=noBuses, fill=(0, 0, 0)) # Text if no buses are scheduled.
+        imgD.text((42, y), "No Buses\n    Scheduled", font=noBuses, fill=(0, 0, 0)) # Text if no buses are scheduled.
 
     img = img.rotate(270 if FLIP else 90, expand=1) # Rotate the image.
     img.save(IMG_FILE) # Export the image.
@@ -212,7 +214,7 @@ while True:
         print()
         print("Current -> Next Update")
         print("%7s -> %s" % (currentTime_S, updateTime_S))
-        print("Sleeping for", timeDifference, "minutes.")
+        logging.info(f"Sleeping for {timeDifference} minutes.")
         
         sleep(timeDifference * 60) # Sleep for all the minutes.
         
@@ -223,7 +225,7 @@ while True:
     
     except IndexError:
         logging.warning("No buses scheduled, sleeping for three hours.")
-        sleep(10800)
+        sleep(3600)
         
     except Exception as e:
         logging.error(e)
