@@ -232,6 +232,7 @@ def showImage():
 
 # >>> Reset time to Zero Seconds.
 def waitForZeroSeconds():
+    return
     while True:
         secs = float(datetime.now().strftime("%S.%f"))
         if secs < 0.1 : break
