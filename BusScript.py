@@ -8,6 +8,7 @@ from time import sleep
 from math import ceil, floor
 from PIL import Image, ImageDraw, ImageFont
 from os import system
+import RPi.GPIO as GPIO
 import logging
 import json
 import time
@@ -23,8 +24,6 @@ LINE = 1
 AIMED_ARRIVAL_TIME = 8
 EPOCH_TIME = datetime(1970, 1, 1)
 
-
-
 # Fonts.
 Roboto_Black = "Roboto/Roboto-Black.ttf"
 Roboto_BlackItalic = "Roboto/Roboto-BlackItalic.ttf"
@@ -39,15 +38,41 @@ Roboto_Regular = "Roboto/Roboto-Regular.ttf"
 Roboto_Thin = "Roboto/Roboto-Thin.ttf"
 Roboto_ThinItalic = "Roboto/Roboto-ThinItalic.ttf"
 
+# Font styles.
 title = ImageFont.truetype(Roboto_Black, 45)
 busNumber = ImageFont.truetype(Roboto_MediumItalic, 45)
 busTime = ImageFont.truetype(Roboto_Bold, 45)
 noBuses = ImageFont.truetype(Roboto_BoldItalic, 50)
+buttons = ImageFont.truetype(Roboto_BlackItalic, 15)
+pauseFont = ImageFont.truetype(Roboto_Black, 30)
 
+# Colours.
+BLACK  = (   0,  0,  0 )
+WHITE  = ( 255,255,255 )
+GREY_D = (  50, 50, 50 )
+GREY_L = ( 200,200,200 )
+
+# Button setup.
+BUTTONS = [24, 16, 6, 5]
+LABELS = ['Refresh', 'B', 'C', 'Pause']
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(BUTTONS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+PAUSE = False
+REFRESH = False
+
+
+# Button handler.
+def buttonHandler(pin):
+    global PAUSE, REFRESH
+
+    label = LABELS[BUTTONS.index(pin)]
+    logging.warning("Button press detected on pin: {} label: {}".format(pin, label))
+    if label == 'Refresh' : REFRESH = True
+    if label == 'Pause' : PAUSE = True
 
 # Get the departure information.
 def getDepartureInfo(departure, printInfo):
-    
+
     mode = departure["mode"]
     line = departure["line"]
     line_name = departure["line_name"]
@@ -87,7 +112,7 @@ def getDepartureInfo(departure, printInfo):
 # >>> Pull the bus times from the api.
 def pullBusTimes():
     logging.info("Pull bus times.")
-    
+
     response = urlopen(URL) # Get the json response.
     jsonDict = json.loads(response.read()) # Load response into dictionary.
     jsonString = json.dumps(jsonDict, indent=2) # Format the json for file output.
@@ -100,7 +125,7 @@ def pullBusTimes():
 # >>> Read the bus times from json file.
 def readBusTimes():
     logging.info("Read bus times.")
-    
+
     f = open(JSON_FILE) # Open the file.
     jsonDict = json.load(f) # Load the values into the dictionary.
     f.close() # Close the file.
@@ -119,7 +144,7 @@ def extractData(jsonDict, TESTING_MODE):
 
     for row in departuresArray: # For every row,
         if TESTING_MODE : print(row) # print the row.
-        
+
     if len(departuresArray) == 0:
         #logging.warning("No departures.")
         pass
@@ -132,29 +157,50 @@ def extractData(jsonDict, TESTING_MODE):
 # >>> Create image.
 def createImage(departuresArray):
     logging.info("Creating the image.")
-    
-    img = Image.new(mode="RGB", size=(480,800), color="white") # Create blank image.
-    
-    imgD = ImageDraw.Draw(img) # Prepare to draw text.
-    imgD.text((30, 20), "Bus Schedule", font=title, fill=(50, 50, 50))
-    imgD.line((20, 90, 460, 90), fill=(100, 100, 100), width=10)
 
-    y = 140
+    global PAUSE
+
+    img = Image.new(mode="RGB", size=(480,800), color=WHITE) # Create blank image.
+    imgD = ImageDraw.Draw(img) # Prepare to draw text.
+
+    # Header for buttons.
+    imgD.rectangle((0, 0, 480, 10), fill=BLACK) # Main line.
+    imgD.rectangle((30, 0, 102, 20), fill=BLACK) # Box for 'Refresh'.
+    imgD.text((35,2), "REFRESH", font=buttons, fill=WHITE) # Text for 'Refresh'.
+    imgD.rectangle((390, 0, 447, 20), fill=BLACK) # Box for 'Pause'.
+    imgD.text((395,2), "PAUSE", font=buttons, fill=WHITE) # Text for 'Pause'.
+
+    y = 10 # Set 'y' value.
+
+    # Card for title.
+    imgD.text((100, y+20), "Bus Schedule", font=title, fill=BLACK) # Text for 'Bus Schedule'.
+
+    # Header for departures table.
+    imgD.line((0, y+90, 480, y+90), fill=BLACK, width=10) # Line for bottom of 'Bus Schedule'.
+
+    # Departures table.
+    y = y + 175
     toggle = True
     for i in departuresArray:
-        if departuresArray.index(i) > 8 : break # If there are EIGHT rows, break.
+        if departuresArray.index(i) > 6 : break # If there are EIGHT rows, break.
         #if toggle: imgD.rectangle((20, y-15, 460, y+65), fill=(230, 230, 230)) # Row background.
-        imgD.rectangle((20, y-15, 460, y+65), fill=(200, 200, 200) if toggle else (255,255,255)) # Row background.
-        imgD.ellipse((30, y, 80, y+50), fill=(255, 255, 255) if toggle else (200, 200, 200)) # Bus number background.
+        imgD.rectangle((20, y-15, 460, y+65), fill=GREY_L if toggle else WHITE) # Row background.
+        imgD.ellipse((30, y, 80, y+50), fill=WHITE if toggle else GREY_L) # Bus number background.
 
-        imgD.text((42, y), i[LINE], font=busNumber, fill=(0, 0, 0)) # Bus number.
-        imgD.text((335, y), i[AIMED_ARRIVAL_TIME], font=busTime, fill=(0, 0, 0)) # Aimed arrival time.
+        imgD.text((42, y), i[LINE], font=busNumber, fill=BLACK) # Bus number.
+        imgD.text((335, y), i[AIMED_ARRIVAL_TIME], font=busTime, fill=BLACK) # Aimed arrival time.
 
         y += 80 # Increase the y value.
         toggle = not toggle # Flip the toggle.
-        
+
     if len(departuresArray) == 0 :
-        imgD.text((42, y), "No Buses\n    Scheduled", font=noBuses, fill=(0, 0, 0)) # Text if no buses are scheduled.
+        imgD.text((42, y), "No Buses\n    Scheduled", font=noBuses, fill=BLACK) # Text if no buses are scheduled.
+
+    if True :
+        imgD.rectangle((180, 750, 295, 785), fill=BLACK)
+        imgD.ellipse((163, 750, 198, 785), fill=BLACK)
+        imgD.ellipse((277, 750, 312, 785), fill=BLACK)
+        imgD.text((180,751), "PAUSED", font=pauseFont, fill=WHITE)
 
     img = img.rotate(270 if FLIP else 90, expand=1) # Rotate the image.
     img.save(IMG_FILE) # Export the image.
@@ -163,7 +209,7 @@ def createImage(departuresArray):
 # >>> Show the image on Inky.
 def showImage():
     logging.info("Outputting image to Inky.")
-    
+
     inky = auto(ask_user=True, verbose=True)
     saturation = 0.5
 
@@ -185,21 +231,26 @@ def waitForZeroSeconds():
         logging.info(f"Waiting for ZERO, sleeping {60-secs} seconds...")
         sleep(60-secs)
 
-
+# >>> Refresh the screen.
 def refreshScreen(TESTING_MODE):
     if not TESTING_MODE : pullBusTimes()
     jsonDict = readBusTimes()
     departuresArray = extractData(jsonDict, TESTING_MODE)
-    waitForZeroSeconds()
+    if not TESTING_MODE: waitForZeroSeconds()
     createImage(departuresArray)
     showImage()
     return departuresArray
 
+
+# Setup for buttons.
+for pin in BUTTONS:
+    GPIO.add_event_detect(pin, GPIO.FALLING, buttonHandler, bouncetime=250)
+
 # ! >>> MAIN  <<< ! #
-TESTING_MODE = False
+TESTING_MODE = True
 departuresArray = refreshScreen(TESTING_MODE)
 
-while True:
+while not TESTING_MODE:
     try:
         currentTime_S = datetime.now().strftime("%H:%M") # Get the current time as a string.
         currentTime_D = datetime.strptime(currentTime_S, "%H:%M") # Get the current time as a datetime.
@@ -215,21 +266,24 @@ while True:
         print("Current -> Next Update")
         print("%7s -> %s" % (currentTime_S, updateTime_S))
         logging.info(f"Sleeping for {timeDifference} minutes.")
-        
-        sleep(timeDifference * 60) # Sleep for all the minutes.
-        
+
+        for t in range(timeDifference * 60) : # Loop so that we can always escape with the buttons.
+            if PAUSE == True:
+                while PAUSE:
+                    sleep(1)
+            if REFRESH == True:
+                departuresArray = refreshScreen(TESTING_MODE)
+                break
+            sleep(1)
+
         if currentTime_T >= updateTime_T : # If current time is greater than the update time,
             logging.info("Current time == MiddleCeiling Row -> Refreshing Screen")
             departuresArray = refreshScreen(TESTING_MODE) # refresh the display,
             waitForZeroSeconds() # and wait for ZERO seconds again.
-    
+
     except IndexError:
         logging.warning("No buses scheduled, sleeping for three hours.")
         sleep(3600)
-        
     except Exception as e:
         logging.error(e)
         quit()
-
-
-# Currently this wont work at the end of the day when there are few buses, nor at the start of the day when there are no buses, gonna involve some fun checks and that.
