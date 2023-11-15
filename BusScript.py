@@ -66,7 +66,7 @@ def buttonHandler(pin):
     global PAUSE, REFRESH
 
     label = LABELS[BUTTONS.index(pin)]
-    logging.warning("Button press detected on pin: {} label: {}".format(pin, label))
+    logging.warning(f"{label} button pressed on pin: {pin}")
     if label == 'Refresh' :
         PAUSE = False
         REFRESH = True
