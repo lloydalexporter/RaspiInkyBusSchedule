@@ -256,7 +256,7 @@ for pin in BUTTONS:
     GPIO.add_event_detect(pin, GPIO.FALLING, buttonHandler, bouncetime=250)
 
 # ! >>> MAIN  <<< ! #
-TESTING_MODE = True
+TESTING_MODE = False
 departuresArray = refreshScreen(TESTING_MODE)
 
 while not TESTING_MODE:
