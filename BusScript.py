@@ -44,7 +44,7 @@ busNumber = ImageFont.truetype(Roboto_MediumItalic, 45)
 busTime = ImageFont.truetype(Roboto_Bold, 45)
 noBuses = ImageFont.truetype(Roboto_BoldItalic, 50)
 buttons = ImageFont.truetype(Roboto_BlackItalic, 15)
-pauseFont = ImageFont.truetype(Roboto_Black, 30)
+pauseFont = ImageFont.truetype(Roboto_BlackItalic, 30)
 
 # Colours.
 BLACK  = (   0,  0,  0 )
@@ -67,8 +67,15 @@ def buttonHandler(pin):
 
     label = LABELS[BUTTONS.index(pin)]
     logging.warning("Button press detected on pin: {} label: {}".format(pin, label))
-    if label == 'Refresh' : REFRESH = True
-    if label == 'Pause' : PAUSE = True
+    if label == 'Refresh' :
+        PAUSE = False
+        REFRESH = True
+    if label == 'Pause' :
+        if PAUSE :
+            PAUSE = False
+            REFRESH = True
+        else:
+            PAUSE = True
 
 # Get the departure information.
 def getDepartureInfo(departure, printInfo):
@@ -196,7 +203,7 @@ def createImage(departuresArray):
     if len(departuresArray) == 0 :
         imgD.text((42, y), "No Buses\n    Scheduled", font=noBuses, fill=BLACK) # Text if no buses are scheduled.
 
-    if True :
+    if PAUSE :
         imgD.rectangle((180, 750, 295, 785), fill=BLACK)
         imgD.ellipse((163, 750, 198, 785), fill=BLACK)
         imgD.ellipse((277, 750, 312, 785), fill=BLACK)
@@ -233,7 +240,9 @@ def waitForZeroSeconds():
 
 # >>> Refresh the screen.
 def refreshScreen(TESTING_MODE):
-    if not TESTING_MODE : pullBusTimes()
+    global PAUSE
+    
+    if not TESTING_MODE and not PAUSE : pullBusTimes()
     jsonDict = readBusTimes()
     departuresArray = extractData(jsonDict, TESTING_MODE)
     if not TESTING_MODE: waitForZeroSeconds()
@@ -273,6 +282,7 @@ while not TESTING_MODE:
                     sleep(1)
             if REFRESH == True:
                 departuresArray = refreshScreen(TESTING_MODE)
+                REFRESH = False
                 break
             sleep(1)
 
