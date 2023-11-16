@@ -277,7 +277,7 @@ while not TESTING_MODE:
         print("%7s -> %s" % (currentTime_S, updateTime_S))
         logging.info(f"Sleeping for {timeDifference} minutes.")
 
-        for t in range(timeDifference * 60) : # Loop so that we can always escape with the buttons.
+        for _ in range(timeDifference * 60) : # Loop so that we can always escape with the buttons.
             if PAUSE == True:
                 while PAUSE:
                     sleep(1)
@@ -293,8 +293,16 @@ while not TESTING_MODE:
             waitForZeroSeconds() # and wait for ZERO seconds again.
 
     except IndexError:
-        logging.warning("No buses scheduled, sleeping for three hours.")
-        sleep(3600)
+        logging.warning("No buses scheduled, sleeping for one hour.")
+        for _ in range(3600):
+            if PAUSE == True:
+                while PAUSE:
+                    sleep(1)
+            if REFRESH == True:
+                departuresArray = refreshScreen(TESTING_MODE)
+                REFRESH = False
+                break
+            sleep(1)
     except Exception as e:
         logging.error(e)
         quit()
