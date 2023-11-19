@@ -298,11 +298,12 @@ while not TESTING_MODE:
             if PAUSE == True:
                 while PAUSE:
                     sleep(1)
+                break
             if REFRESH == True:
-                departuresArray = refreshScreen(TESTING_MODE)
                 REFRESH = False
                 break
             sleep(1)
+        departuresArray = refreshScreen(TESTING_MODE)
     except Exception as e:
         logging.error(e)
         quit()
