@@ -66,12 +66,13 @@ def buttonHandler(pin):
     global PAUSE, REFRESH
 
     label = LABELS[BUTTONS.index(pin)]
-    logging.warning(f"{label} button pressed on pin: {pin}")
     if label == 'Refresh' :
         PAUSE = False
         REFRESH = True
     if label == 'Pause' :
         PAUSE = not PAUSE
+    logging.warning(f"{label} button pressed. Value: {PAUSE if label == 'Pause' else REFRESH}")
+        
 
 # Get the departure information.
 def getDepartureInfo(departure, printInfo):
