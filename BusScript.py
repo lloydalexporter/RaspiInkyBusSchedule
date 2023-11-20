@@ -294,7 +294,7 @@ while not TESTING_MODE:
 
     except IndexError:
         logging.warning("No buses scheduled, sleeping for one hour.")
-        for _ in range(3600):
+        for _ in range(3 * 60 * 60):
             if PAUSE == True:
                 while PAUSE:
                     sleep(1)
