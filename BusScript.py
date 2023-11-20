@@ -69,9 +69,10 @@ def buttonHandler(pin):
     if label == 'Refresh' :
         PAUSE = False
         REFRESH = True
+        logging.warning(f"{label} button pressed.")
     if label == 'Pause' :
         PAUSE = not PAUSE
-    logging.warning(f"{label} button pressed. Value: {PAUSE if label == 'Pause' else REFRESH}")
+        logging.warning(f"{label} button pressed. Value: {PAUSE}")
         
 
 # Get the departure information.
