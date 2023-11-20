@@ -271,8 +271,9 @@ while not TESTING_MODE:
                 break
             sleep(1)
 
-        if currentTime_T >= updateTime_T and not PAUSE : # If current time is greater than the update time,
+        if currentTime_T <= updateTime_T and not PAUSE : # If current time is greater than the update time,
             logging.info("Current time == MiddleCeiling Row -> Refreshing Screen")
+            logging.info(f"{currentTime_T} == {updateTime_T}")
             departuresArray = refreshScreen(TESTING_MODE) # refresh the display,
             waitForZeroSeconds() # and wait for ZERO seconds again.
             
