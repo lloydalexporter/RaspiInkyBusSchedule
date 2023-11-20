@@ -71,11 +71,7 @@ def buttonHandler(pin):
         PAUSE = False
         REFRESH = True
     if label == 'Pause' :
-        if PAUSE :
-            PAUSE = False
-            REFRESH = True
-        else:
-            PAUSE = True
+        PAUSE = not PAUSE
 
 # Get the departure information.
 def getDepartureInfo(departure, printInfo):
@@ -115,7 +111,6 @@ def getDepartureInfo(departure, printInfo):
 
     return [ mode, line, line_name, dir, direction, operator, operator_name, aimed_departure_time, aimed_arrival_time, aimed_departure_time2, best_departure_estimate, expected_departure_time, expected_arrival_time, expected_departure_time2 ]
 
-
 # >>> Pull the bus times from the api.
 def pullBusTimes():
     logging.info("Pull bus times.")
@@ -128,7 +123,6 @@ def pullBusTimes():
     with open(JSON_FILE, "w") as writer:
         writer.write(jsonString)
 
-
 # >>> Read the bus times from json file.
 def readBusTimes():
     logging.info("Read bus times.")
@@ -137,7 +131,6 @@ def readBusTimes():
     jsonDict = json.load(f) # Load the values into the dictionary.
     f.close() # Close the file.
     return jsonDict
-
 
 # >>> Extract the useful data from the json file.
 def extractData(jsonDict, TESTING_MODE):
@@ -159,7 +152,6 @@ def extractData(jsonDict, TESTING_MODE):
         logging.info(f"{len(departuresArray)} departures found.")
 
     return departuresArray
-
 
 # >>> Create image.
 def createImage(departuresArray):
@@ -212,7 +204,6 @@ def createImage(departuresArray):
     img = img.rotate(270 if FLIP else 90, expand=1) # Rotate the image.
     img.save(IMG_FILE) # Export the image.
 
-
 # >>> Show the image on Inky.
 def showImage():
     logging.info("Outputting image to Inky.")
@@ -225,10 +216,6 @@ def showImage():
 
     inky.set_image(resizedimage, saturation=saturation)
     inky.show()
-
-    # script = "/home/pi/Pimoroni/inky/examples/7color/image.py " + imgFile # Pimoroni E-ink display string.
-    # system(script) # Run the script to display the image.
-
 
 # >>> Reset time to Zero Seconds.
 def waitForZeroSeconds():
@@ -278,19 +265,19 @@ while not TESTING_MODE:
         logging.info(f"Sleeping for {timeDifference} minutes.")
 
         for _ in range(timeDifference * 60) : # Loop so that we can always escape with the buttons.
-            if PAUSE == True:
-                while PAUSE:
-                    sleep(1)
             if REFRESH == True:
                 departuresArray = refreshScreen(TESTING_MODE)
                 REFRESH = False
                 break
             sleep(1)
 
-        if currentTime_T >= updateTime_T : # If current time is greater than the update time,
+        if currentTime_T >= updateTime_T and not PAUSE : # If current time is greater than the update time,
             logging.info("Current time == MiddleCeiling Row -> Refreshing Screen")
             departuresArray = refreshScreen(TESTING_MODE) # refresh the display,
             waitForZeroSeconds() # and wait for ZERO seconds again.
+            
+        while PAUSE:
+            sleep(1)
 
     except IndexError:
         logging.warning("No buses scheduled, sleeping for three hours.")
