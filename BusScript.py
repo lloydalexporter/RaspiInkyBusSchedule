@@ -293,7 +293,7 @@ while not TESTING_MODE:
             waitForZeroSeconds() # and wait for ZERO seconds again.
 
     except IndexError:
-        logging.warning("No buses scheduled, sleeping for one hour.")
+        logging.warning("No buses scheduled, sleeping for three hours.")
         for _ in range(3 * 60 * 60):
             if PAUSE == True:
                 while PAUSE:
