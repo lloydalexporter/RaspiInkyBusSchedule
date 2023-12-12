@@ -117,13 +117,20 @@ def getDepartureInfo(departure, printInfo):
 def pullBusTimes():
     logging.info("Pull bus times.")
 
-    response = urlopen(URL) # Get the json response.
-    jsonDict = json.loads(response.read()) # Load response into dictionary.
-    jsonString = json.dumps(jsonDict, indent=2) # Format the json for file output.
+    for _ in range(10): # Attempt this for five minutes.
+        try: # Try to pull bus data from API.
+            response = urlopen(URL) # Get the json response.
+            jsonDict = json.loads(response.read()) # Load response into dictionary.
+            jsonString = json.dumps(jsonDict, indent=2) # Format the json for file output.
+        except: # If there is an error, say so and wait thirty seconds
+            logging.critical("Could not pull data from API, trying again in thirty seconds.")
+            sleep(30)
+        else: # If successful, write response to file.
+            with open(JSON_FILE, "w") as writer:
+                writer.write(jsonString)
+            return True
 
-    # Write the response to file.
-    with open(JSON_FILE, "w") as writer:
-        writer.write(jsonString)
+    return False
 
 # >>> Read the bus times from json file.
 def readBusTimes():
@@ -156,7 +163,7 @@ def extractData(jsonDict, TESTING_MODE):
     return departuresArray
 
 # >>> Create image.
-def createImage(departuresArray):
+def createImage(SUCCESS, departuresArray):
     logging.info("Creating the image.")
 
     global PAUSE
@@ -194,16 +201,23 @@ def createImage(departuresArray):
         y += 80 # Increase the y value.
         toggle = not toggle # Flip the toggle.
 
-    if len(departuresArray) == 0 :
+    # If we failed to pull data, say so.
+    if not SUCCESS :
+        PAUSE = True # Enable PAUSE.
+        imgD.text((42, y), "Failed to\n    fetch timetable.", font=noBuses, fill=BLACK) # Text if no buses are scheduled.
+        imgD.text((42, y), "Press REFRESH to .", font=noBuses, fill=BLACK) # Text if no buses are scheduled.
+
+    # If there were no buses scheduled, and we fetched timetable data successfully.
+    if len(departuresArray) == 0 and SUCCESS :
         imgD.text((42, y), "No Buses\n    Scheduled", font=noBuses, fill=BLACK) # Text if no buses are scheduled.
 
-    if PAUSE :
+    if PAUSE : # If PAUSED, print it.
         imgD.rectangle((180, 750, 295, 785), fill=BLACK)
         imgD.ellipse((163, 750, 198, 785), fill=BLACK)
         imgD.ellipse((277, 750, 312, 785), fill=BLACK)
         imgD.text((180,751), "PAUSED", font=pauseFont, fill=WHITE)
 
-    img = img.rotate(270 if FLIP else 90, expand=1) # Rotate the image.
+    img = img.rotate(270 if FLIP else 90, expand=1) # Rotate the image to portrait.
     img.save(IMG_FILE) # Export the image.
 
 # >>> Show the image on Inky.
@@ -231,12 +245,18 @@ def waitForZeroSeconds():
 # >>> Refresh the screen.
 def refreshScreen(TESTING_MODE):
     global PAUSE
-    
-    if not TESTING_MODE and not PAUSE : pullBusTimes()
-    jsonDict = readBusTimes()
-    departuresArray = extractData(jsonDict, TESTING_MODE)
-    if not TESTING_MODE: waitForZeroSeconds()
-    createImage(departuresArray)
+    SUCCESS = True
+    departuresArray = []
+
+    if not TESTING_MODE and not PAUSE :
+        SUCCESS = pullBusTimes()
+
+    if SUCCESS :
+        jsonDict = readBusTimes()
+        departuresArray = extractData(jsonDict, TESTING_MODE)
+        if not TESTING_MODE : waitForZeroSeconds()
+
+    createImage(SUCCESS, departuresArray)
     showImage()
     return departuresArray
 
