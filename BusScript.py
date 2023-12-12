@@ -205,7 +205,7 @@ def createImage(SUCCESS, departuresArray):
     if not SUCCESS :
         PAUSE = True # Enable PAUSE.
         imgD.text((42, y), "Failed to\n    fetch timetable.", font=noBuses, fill=BLACK) # Text if no buses are scheduled.
-        imgD.text((42, y), "Press REFRESH to .", font=noBuses, fill=BLACK) # Text if no buses are scheduled.
+        imgD.text((42, y+160), "Press REFRESH\n    to try again.", font=noBuses, fill=BLACK) # Text if no buses are scheduled.
 
     # If there were no buses scheduled, and we fetched timetable data successfully.
     if len(departuresArray) == 0 and SUCCESS :
@@ -245,7 +245,7 @@ def waitForZeroSeconds():
 # >>> Refresh the screen.
 def refreshScreen(TESTING_MODE):
     global PAUSE
-    SUCCESS = True
+    SUCCESS = False
     departuresArray = []
 
     if not TESTING_MODE and not PAUSE :
@@ -266,7 +266,7 @@ for pin in BUTTONS:
     GPIO.add_event_detect(pin, GPIO.FALLING, buttonHandler, bouncetime=250)
 
 # ! >>> MAIN  <<< ! #
-TESTING_MODE = False
+TESTING_MODE = True
 departuresArray = refreshScreen(TESTING_MODE)
 
 while not TESTING_MODE:
