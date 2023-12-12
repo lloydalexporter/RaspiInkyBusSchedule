@@ -123,7 +123,7 @@ def pullBusTimes():
             jsonDict = json.loads(response.read()) # Load response into dictionary.
             jsonString = json.dumps(jsonDict, indent=2) # Format the json for file output.
         except: # If there is an error, say so and wait thirty seconds
-            logging.critical("Could not pull data from API, trying again in thirty seconds.")
+            logging.critical("Could not pull data from API, trying again.")
             sleep(30)
         else: # If successful, write response to file.
             with open(JSON_FILE, "w") as writer:
