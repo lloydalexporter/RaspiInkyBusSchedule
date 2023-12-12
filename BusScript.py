@@ -117,7 +117,7 @@ def getDepartureInfo(departure, printInfo):
 def pullBusTimes():
     logging.info("Pull bus times.")
 
-    for _ in range(10): # Attempt this for five minutes.
+    for _ in range(5): # Attempt this five times.
         try: # Try to pull bus data from API.
             response = urlopen(URL) # Get the json response.
             jsonDict = json.loads(response.read()) # Load response into dictionary.
