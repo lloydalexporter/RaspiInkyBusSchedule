@@ -130,6 +130,7 @@ def pullBusTimes():
                 writer.write(jsonString)
             return True
 
+    logging.warning("No avail at pulling data from API, waiting for user intervention.")
     return False
 
 # >>> Read the bus times from json file.
@@ -155,7 +156,7 @@ def extractData(jsonDict, TESTING_MODE):
         if TESTING_MODE : print(row) # print the row.
 
     if len(departuresArray) == 0:
-        #logging.warning("No departures.")
+        logging.info("No departures.")
         pass
     else:
         logging.info(f"{len(departuresArray)} departures found.")
@@ -245,7 +246,7 @@ def waitForZeroSeconds():
 # >>> Refresh the screen.
 def refreshScreen(TESTING_MODE):
     global PAUSE
-    SUCCESS = False
+    SUCCESS = True
     departuresArray = []
 
     if not TESTING_MODE and not PAUSE :
@@ -266,7 +267,7 @@ for pin in BUTTONS:
     GPIO.add_event_detect(pin, GPIO.FALLING, buttonHandler, bouncetime=250)
 
 # ! >>> MAIN  <<< ! #
-TESTING_MODE = True
+TESTING_MODE = False
 departuresArray = refreshScreen(TESTING_MODE)
 
 while not TESTING_MODE:
