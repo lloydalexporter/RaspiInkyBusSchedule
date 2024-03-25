@@ -21,6 +21,7 @@ JSON_FILE = "response.json"
 IMG_FILE = "image.jpg"
 URL = "https://transportapi.com/v3/uk/bus/stop_timetables/" + BUS_CODE +  ".json?app_id=" + APP_ID + "&app_key=" + APP_KEY
 LINE = 1
+LINE_NAME = 2
 AIMED_ARRIVAL_TIME = 8
 EPOCH_TIME = datetime(1970, 1, 1)
 
@@ -196,7 +197,7 @@ def createImage(SUCCESS, departuresArray):
         imgD.rectangle((20, y-15, 460, y+65), fill=GREY_L if toggle else WHITE) # Row background.
         imgD.ellipse((30, y, 80, y+50), fill=WHITE if toggle else GREY_L) # Bus number background.
 
-        imgD.text((42, y), i[LINE], font=busNumber, fill=BLACK) # Bus number.
+        imgD.text((42, y), i[LINE_NAME], font=busNumber, fill=BLACK) # Bus number.
         imgD.text((335, y), i[AIMED_ARRIVAL_TIME], font=busTime, fill=BLACK) # Aimed arrival time.
 
         y += 80 # Increase the y value.
