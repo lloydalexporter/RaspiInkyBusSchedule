@@ -17,3 +17,7 @@ FLIP = False # Flip the display 180 degress.
 - [ ] Increase customisability in ```CONFIG.py``` file.
 - [ ] Add dynamic sizing for Pimoroni's other Inky Impressions ( e.g. 4", 5.7" ).
 - [ ] Compatibility with Pimoroni's Pico-based Inky Frames.
+- [ ] If no network, periodically ping google instead of current method.
+- [ ] Make shutdown script better, at the moment it just sends to white, have actual text shown, would be a lot nicer.
+
+
