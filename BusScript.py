@@ -67,11 +67,11 @@ SHUTDOWN_C = False
 # Button handler.
 def buttonHandler(pin):
     global PAUSE, REFRESH
-    
+
 
     label = LABELS[BUTTONS.index(pin)]
     logging.warning(f"{label} button pressed.")
-    
+
     if label == 'Refresh' :
         PAUSE = False
         REFRESH = True
@@ -84,14 +84,14 @@ def buttonHandler(pin):
         SHUTDOWN_B = True
     if label == 'C' :
         SHUTDOWN_C = True
-    
+
     if SHUTDOWN_B and SHUTDOWN_C:
         logging.warning("Shutting down...")
         inky = auto(ask_user=True, verbose=True)
-        inky.set_image(Image.new("P", (inky.WIDTH, inky.HEIGHT), color=0))
+        inky.set_image(Image.new("P", (inky.WIDTH, inky.HEIGHT), color=1))
         inky.show()
         quit()
-        
+
 
 # Get the departure information.
 def getDepartureInfo(departure, printInfo):
