@@ -60,20 +60,37 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUTTONS, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 PAUSE = False
 REFRESH = False
+SHUTDOWN_B = False
+SHUTDOWN_C = False
 
 
 # Button handler.
 def buttonHandler(pin):
     global PAUSE, REFRESH
+    
 
     label = LABELS[BUTTONS.index(pin)]
+    logging.warning(f"{label} button pressed.")
+    
     if label == 'Refresh' :
         PAUSE = False
         REFRESH = True
-        logging.warning(f"{label} button pressed.")
+        SHUTDOWN_B, SHUTDOWN_C = False
     if label == 'Pause' :
         PAUSE = not PAUSE
-        logging.warning(f"{label} button pressed. Value: {PAUSE}")
+        SHUTDOWN_B, SHUTDOWN_C = False
+        logging.warning(f"Value: {PAUSE}")
+    if label == 'B' :
+        SHUTDOWN_B = True
+    if label == 'C' :
+        SHUTDOWN_C = True
+    
+    if SHUTDOWN_B and SHUTDOWN_C:
+        logging.warning("Shutting down...")
+        inky = auto(ask_user=True, verbose=True)
+        inky.set_image(Image.new("P", (inky.WIDTH, inky.HEIGHT), color=0))
+        inky.show()
+        quit()
         
 
 # Get the departure information.
